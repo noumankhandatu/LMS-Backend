@@ -1,4 +1,5 @@
 require("dotenv").config();
+
 const { connectToDatabase } = require("./utils/mongodb");
 const { app } = require("./app");
 

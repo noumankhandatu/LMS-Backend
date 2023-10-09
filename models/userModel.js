@@ -14,7 +14,6 @@ const Schema = new mongoose.Schema(
     },
     password: {
       type: String,
-      require: [true, "Please enter your password"],
       select: false,
     },
     avatar: {
@@ -38,14 +37,14 @@ const Schema = new mongoose.Schema(
   { timestamps: true }
 );
 
-//  Sign In Access Token
-Schema.methods.SignAccessToken = () => {
-  return jwt.sign({ id: this._id }, process.env.ACCESS_TOKEN || " ");
-};
-// Sign In Refresh Token
+// Sign In Access Token
 
-Schema.methods.SignRefreshToken = () => {
-  return jwt.sign({ id: this._id }, process.env.REFRESH_TOKEN || " ");
+Schema.methods.SignAccessToken = function () {
+  return jwt.sign({ id: this._id }, process.env.ACCESS_TOKEN || " ", { expiresIn: "5m" });
+};
+
+Schema.methods.SignRefreshToken = function () {
+  return jwt.sign({ id: this._id }, process.env.REFRESH_TOKEN || " ", { expiresIn: "3d" });
 };
 const UserModel = mongoose.model("UserModel", Schema);
 module.exports = UserModel;

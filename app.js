@@ -5,8 +5,8 @@ const cors = require("cors");
 const { UserRouter } = require("./routes/userRoute");
 // body parser
 app.use(express.json());
+// cookie parser for cookies
 
-// cookie parser
 app.use(cookieParser());
 
 // cors
