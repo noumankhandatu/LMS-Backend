@@ -3,6 +3,7 @@ const app = express();
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const { UserRouter } = require("./routes/userRoute");
+const { CourseRoute } = require("./routes/courseRoute");
 // body parser
 app.use(express.json());
 // cookie parser for cookies
@@ -18,6 +19,7 @@ app.use(
 
 // routes
 app.use("/api/v1", UserRouter);
+app.use("/api/v1", CourseRoute);
 
 app.get("/test", (req, res) => {
   return res.status(200).send({ messasge: "Great api working" });

@@ -14,6 +14,7 @@ const Schema = new mongoose.Schema(
     },
     password: {
       type: String,
+      // this select will not show password if u get user to get it intentionally  const user = await UserModel.findById(userId).select("+password")
       select: false,
     },
     avatar: {

@@ -7,6 +7,9 @@ const {
   UpdateAccessToken,
   UserInfo,
   socialAuth,
+  updateUserInfo,
+  updateUserPassword,
+  updateProfilePicture,
 } = require("../controllers/userController");
 const { isAuthenticated } = require("../middleware/auth");
 
@@ -25,5 +28,11 @@ UserRouter.get("/refresh-token", UpdateAccessToken);
 UserRouter.get("/me", isAuthenticated, UserInfo);
 
 UserRouter.post("/social-auth", socialAuth);
+
+UserRouter.put("/update-user-info", isAuthenticated, updateUserInfo);
+
+UserRouter.put("/update-user-password", isAuthenticated, updateUserPassword);
+
+UserRouter.put("/update-user-avatar", isAuthenticated, updateProfilePicture);
 
 module.exports = { UserRouter };

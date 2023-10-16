@@ -5,9 +5,13 @@ const sendMail = require("../utils/sendMail");
 const bcrypt = require("bcrypt");
 const { sendToken, accessTokenOptions, refreshTokenOptions } = require("../utils/jwt");
 const { getUserById } = require("../services/userServices");
+const cloudinary = require("cloudinary");
 // Register the user
 const RegisterUser = asyncHandler(async (req, res, next) => {
   const { name, email, password } = req.body;
+  if (!name || !password || !email) {
+    return res.status(401).send({ message: "Please enter name password and email address" });
+  }
   const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   if (!isEmailValid) {
     return res.status(400).send({ message: "Invalid email format" });
@@ -28,7 +32,6 @@ const RegisterUser = asyncHandler(async (req, res, next) => {
   // now we sending activation code to email
   const data = { user: user, activationCode };
 
-  // const html = await ejs.renderFile(path.join(__dirname, "../mails/activationMail.ejs"), data);
   try {
     await sendMail({
       email: user.email,
@@ -42,7 +45,7 @@ const RegisterUser = asyncHandler(async (req, res, next) => {
       activationToken: activationToken.token,
     });
   } catch (error) {
-    return res.status(400).send({ message: error });
+    return res.status(500).send({ message: error });
   }
 });
 
@@ -141,9 +144,11 @@ const UpdateAccessToken = asyncHandler(async (req, res) => {
     const refreshToken = jwt.sign({ id: user._id }, process.env.REFRESH_TOKEN, {
       expiresIn: "3d",
     });
-
+    // req.user needs to be saved to use req?.user?._id; to find current user
+    req.user = user;
     res.cookie("accessToken", accessToken, accessTokenOptions);
     res.cookie("refreshToken", refreshToken, refreshTokenOptions);
+
     return res.status(200).send({
       message: "Successfully updated access token" + accessToken,
     });
@@ -183,6 +188,111 @@ const socialAuth = asyncHandler(async (req, res, next) => {
   }
 });
 
+// update user info (name and password and avatar)
+const updateUserInfo = asyncHandler(async (req, res) => {
+  try {
+    const { email, name } = req.body;
+    // we are getting current login user from here req.user._id  its working cos of cookies
+    const userId = req?.user?._id;
+
+    const user = await UserModel.findById(userId);
+
+    if (!userId) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (email && user) {
+      const isEmailExist = await UserModel.findOne({ email });
+      if (isEmailExist) {
+        return res.status(403).json({ message: "Email already exists, choose another email" });
+      }
+      user.email = email;
+    }
+
+    if (name && user) {
+      user.name = name;
+    }
+
+    await user.save();
+
+    return res.status(200).json({ message: "User updated successfully", user });
+  } catch (error) {
+    return res.status(500).json({ message: error });
+  }
+});
+
+// update user password
+const updateUserPassword = asyncHandler(async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+
+    // Check if oldPassword and newPassword are provided
+    if (!oldPassword || !newPassword) {
+      return res.status(400).send({ message: "Please provide both old and new passwords" });
+    }
+    const userId = req?.user?._id;
+
+    const user = await UserModel.findById(userId).select("+password");
+    if (!user) {
+      return res.status(404).send({ message: "User not found" });
+    }
+    // Verify if the old password matches the stored hashed password
+    const passwordMatch = await bcrypt.compare(oldPassword, user.password);
+
+    if (!passwordMatch) {
+      return res.status(400).send({ message: "Old password is incorrect" });
+    }
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+    user.password = hashedNewPassword;
+    await user.save();
+
+    res.status(200).send({ message: "Password updated successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: "Internal server error" });
+  }
+});
+
+// update profile picture
+
+const updateProfilePicture = asyncHandler(async (req, res) => {
+  try {
+    const { avatar } = req.body;
+    if (!avatar) {
+      return res.status(400).send({ message: "Enter avatar" });
+    }
+    const user = req.user;
+    if (!user) {
+      return res.status(400).send({ message: "User not found" });
+    }
+    if (user?.avatar?.public_id) {
+      // first delete the avatar
+      await cloudinary.v2.uploader.destroy(user?.avatar?.public_id);
+      // then update the avatar
+      await cloudinary.v2.uploader.upload(avatar, { folder: "avatars", width: "150px" });
+    } else {
+      // direct upload if avatar not available
+      await cloudinary.v2.uploader.upload(avatar, { folder: "avatars", width: "150px" });
+    }
+
+    user.avatar = {
+      public_id: myCloud.public_id,
+      url: myCloud.secure_url,
+    };
+
+    await user.save();
+    res.status(200).send({ message: "Profile picture updated successfully", user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: "Internal server error" });
+  }
+});
+
 module.exports = {
   RegisterUser,
   CreateActivationToken,
@@ -192,4 +302,7 @@ module.exports = {
   UpdateAccessToken,
   UserInfo,
   socialAuth,
+  updateUserInfo,
+  updateUserPassword,
+  updateProfilePicture,
 };
