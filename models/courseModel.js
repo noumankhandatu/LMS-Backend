@@ -14,11 +14,11 @@ const linkSchema = new Schema({
   url: String,
 });
 
-// comment Schema
-const commentSchema = new Schema({
+// question Schema
+const questionSchema = new Schema({
   user: Object,
-  comment: String,
-  commentReplies: [Object],
+  question: String,
+  questionReplies: [Object],
 });
 
 const courseDataSchema = new Schema({
@@ -30,7 +30,7 @@ const courseDataSchema = new Schema({
   videoLength: String,
   links: [linkSchema],
   suggestions: String,
-  questions: [commentSchema],
+  questions: [questionSchema],
 });
 
 const courseSchema = new Schema({
@@ -72,7 +72,7 @@ const courseSchema = new Schema({
   benefits: [{ title: String }],
   prerequisites: [{ title: String }],
   review: [reviewSchema],
-  courseData: courseDataSchema,
+  courseData: [courseDataSchema],
   rating: {
     type: Number,
     default: 0,
