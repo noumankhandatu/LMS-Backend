@@ -7,6 +7,8 @@ const reviewSchema = new Schema({
     type: Number,
     default: 0,
   },
+  review: String,
+  reviewReply: [Object],
 });
 
 const linkSchema = new Schema({

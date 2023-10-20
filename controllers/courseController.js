@@ -4,8 +4,6 @@ const cloudinary = require("cloudinary");
 const { createCourse } = require("../services/courseServices");
 const CourseModel = require("../models/courseModel");
 const { default: mongoose } = require("mongoose");
-const ejs = require("ejs");
-const sendMail = require("../utils/sendMail");
 
 // upload course
 const uploadCourse = asyncHandler(async (req, res) => {
@@ -28,7 +26,6 @@ const uploadCourse = asyncHandler(async (req, res) => {
     handleErrorResponse(res, error);
   }
 });
-
 // edit course
 
 const editCourse = asyncHandler(async (req, res) => {
@@ -69,6 +66,7 @@ const getSingleCourse = asyncHandler(async (req, res) => {
     const course = await CourseModel.findById(courseId).select(
       "-courseData.videoUrl -courseData.suggestions -courseData.questions -courseData.links"
     );
+    console.log(course);
     res.status(200).send({ message: "Successfull", course });
   } catch (error) {
     handleErrorResponse(res, error);
@@ -94,6 +92,8 @@ const getCourseByUser = asyncHandler(async (req, res) => {
     const userCourseList = req?.user?.courses;
     const courseId = req.params.id;
     const courseExists = await userCourseList?.find((course) => course.id.toString() === courseId);
+
+    // if user didnt not purchase the course we will show this
     if (!courseExists) {
       return res.status(404).send({ message: "You are not allowed to this courses " });
     }
@@ -101,6 +101,7 @@ const getCourseByUser = asyncHandler(async (req, res) => {
     const courseContent = course.courseData;
     return res.status(200).send({ message: "Success!", courseContent });
   } catch (error) {
+    console.log(error);
     handleErrorResponse(res, error);
   }
 });
@@ -195,7 +196,7 @@ const addAnswers = asyncHandler(async (req, res) => {
 const addReview = asyncHandler(async (req, res) => {
   try {
     const userCourseList = req.user.courses;
-    console.log(userCourseList);
+
     const courseId = req.params.id;
     // check course id already exists
     const courseExists = userCourseList?.some(
@@ -210,25 +211,56 @@ const addReview = asyncHandler(async (req, res) => {
     const { review, rating } = req.body;
     const reviewData = {
       user: req.user,
-      comment: review,
+      review: review,
       rating,
     };
     course?.review.push(reviewData);
-
+    console.log(course);
     let avg = 0;
-    course.reviews.forEach((rev) => (avg += rev.rating));
+    course.review.forEach((rev) => (avg += rev.rating));
     if (course) {
       // course?.rating = avg/course?.review.length   // e.g if we have 2 reviews one is 5 and other is 4 9/2  =4.5 rating
     }
     await course.save();
 
-    const notifcation = {
-      title: "New Review Released",
-      message: `${req.user.name} has given review on your course ${course.name}`,
-    };
+    // const notifcation = {
+    //   title: "New Review Released",
+    //   message: `${req.user.name} has given review on your course ${course.name}`,
+    // };
 
     // create a notification
     return res.status(200).send({ message: "New Review Released", course });
+  } catch (error) {
+    handleErrorResponse(res, error);
+  }
+});
+
+// add reply to review
+
+const addReplyToReview = asyncHandler(async (req, res) => {
+  try {
+    const { replyToReview, courseId, reviewId } = req.body;
+    const course = await CourseModel.findById(courseId);
+    console.log(course.review);
+
+    if (!course) {
+      return res.status(400).send({ message: "you arent elegibly for this course" });
+    }
+    const review = course.review.find((rev) => rev.id.toString() === reviewId);
+    if (!review) {
+      return res.status(400).send({ message: "Review not found" });
+    }
+    const replyData = {
+      user: req.user,
+      replyToReview,
+    };
+    if (!review?.reviewReply) {
+      review.reviewReply = [];
+    }
+    review?.reviewReply.push(replyData);
+
+    await course.save();
+    return res.status(400).send({ message: "Review Reply Saved Successfully", course });
   } catch (error) {
     handleErrorResponse(res, error);
   }
@@ -244,6 +276,7 @@ module.exports = {
   addQuestions,
   addAnswers,
   addReview,
+  addReplyToReview,
 };
 // const addAnswers = asyncHandler(async (req, res) => {
 //   try {

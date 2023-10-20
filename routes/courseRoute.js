@@ -8,6 +8,7 @@ const {
   addQuestions,
   addAnswers,
   addReview,
+  addReplyToReview,
 } = require("../controllers/courseController");
 const { isAuthenticated, authorizationRole } = require("../middleware/auth");
 
@@ -21,5 +22,11 @@ CourseRoute.get("/get-course-content/:id", isAuthenticated, getCourseByUser);
 CourseRoute.put("/add-questions", isAuthenticated, addQuestions);
 CourseRoute.put("/add-answers", isAuthenticated, addAnswers);
 CourseRoute.put("/add-review/:id", isAuthenticated, addReview);
+CourseRoute.put(
+  "/add-reply-to-review",
+  isAuthenticated,
+  authorizationRole("admin"),
+  addReplyToReview
+);
 
 module.exports = { CourseRoute };

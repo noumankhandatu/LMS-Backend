@@ -1,5 +1,6 @@
 function handleErrorResponse(res, error) {
-  return res.status(500).send({ message: error });
+  const stringError = error.toString();
+  return res.status(500).send({ message: stringError });
 }
 
 module.exports = { handleErrorResponse };
