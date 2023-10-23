@@ -4,6 +4,8 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const { UserRouter } = require("./routes/userRoute");
 const { CourseRoute } = require("./routes/courseRoute");
+const { OrderRoute } = require("./routes/orderRoute");
+const { NotificationRoute } = require("./routes/notificationRoute");
 // body parser
 app.use(express.json());
 // cookie parser for cookies
@@ -18,8 +20,7 @@ app.use(
 );
 
 // routes
-app.use("/api/v1", UserRouter);
-app.use("/api/v1", CourseRoute);
+app.use("/api/v1", UserRouter, CourseRoute, OrderRoute, NotificationRoute);
 
 app.get("/test", (req, res) => {
   return res.status(200).send({ messasge: "Great api working" });

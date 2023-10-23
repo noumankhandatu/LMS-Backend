@@ -4,7 +4,7 @@ const cloudinary = require("cloudinary");
 const { createCourse } = require("../services/courseServices");
 const CourseModel = require("../models/courseModel");
 const { default: mongoose } = require("mongoose");
-
+const NotificationModel = require("../models/notificationModel");
 // upload course
 const uploadCourse = asyncHandler(async (req, res) => {
   try {
@@ -123,12 +123,16 @@ const addQuestions = asyncHandler(async (req, res) => {
       question,
       questionReplies: [],
     };
-    console.log(newQuestion);
     //  add the above to course content
     courseContent.questions.push(newQuestion);
 
     // save updated course content
     await course?.save();
+    await NotificationModel.create({
+      user: req.user?._id,
+      title: "New Question added in course",
+      message: `You have a new Question from ${courseContent?.title}`,
+    });
     return res
       .status(200)
       .send({ message: "Question updated successfully", question: newQuestion });
@@ -162,30 +166,11 @@ const addAnswers = asyncHandler(async (req, res) => {
     };
     question.questionReplies.push(newAnswer);
     await course?.save();
-
-    // if (req.user._id === question.user._id && false) {
-    //   // create a notification
-    // } else {
-    //   const data = {
-    //     name: question.user.name,
-    //     title: courseContent.title,
-    //   };
-    //   console.log("test");
-
-    //   const html = await ejs.renderFile(path.join(__dirname, "../mails"), data);
-    //   console.log("te2t");
-
-    //   try {
-    //     await sendMail({
-    //       email: user.email,
-    //       subject: "Question Reply",
-    //       template: "questionReply.ejs", //email filename
-    //       data,
-    //     });
-    //   } catch (error) {
-    //     return res.status(400).send({ message: "Answer Mail error" });
-    //   }
-    // }
+    await NotificationModel.create({
+      user: req.user?._id,
+      title: "You replied to a question",
+      message: `You have replied to question in the ${courseContent?.title}`,
+    });
     return res.status(200).json({ message: "Success!", course });
   } catch (error) {
     return res.status(400).send({ message: "Cant added question error" });
@@ -215,7 +200,6 @@ const addReview = asyncHandler(async (req, res) => {
       rating,
     };
     course?.review.push(reviewData);
-    console.log(course);
     let avg = 0;
     course.review.forEach((rev) => (avg += rev.rating));
     if (course) {
@@ -223,10 +207,11 @@ const addReview = asyncHandler(async (req, res) => {
     }
     await course.save();
 
-    // const notifcation = {
-    //   title: "New Review Released",
-    //   message: `${req.user.name} has given review on your course ${course.name}`,
-    // };
+    await NotificationModel.create({
+      user: req.user?._id,
+      title: "You added a review successfully",
+      message: `You added a review successfully in the ${courseContent?.title}`,
+    });
 
     // create a notification
     return res.status(200).send({ message: "New Review Released", course });
@@ -278,9 +263,3 @@ module.exports = {
   addReview,
   addReplyToReview,
 };
-// const addAnswers = asyncHandler(async (req, res) => {
-//   try {
-//   } catch (error) {
-//     handleErrorResponse(res, error);
-//   }
-// });
