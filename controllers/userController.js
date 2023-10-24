@@ -4,8 +4,13 @@ const jwt = require("jsonwebtoken");
 const sendMail = require("../utils/sendMail");
 const bcrypt = require("bcrypt");
 const { sendToken, accessTokenOptions, refreshTokenOptions } = require("../utils/jwt");
-const { getUserById } = require("../services/userServices");
+const {
+  getUserById,
+  getAllUsersServices,
+  updateUserRoleService,
+} = require("../services/userServices");
 const cloudinary = require("cloudinary");
+const { handleErrorResponse } = require("../middleware/errorHandler");
 // Register the user
 const RegisterUser = asyncHandler(async (req, res, next) => {
   const { name, email, password } = req.body;
@@ -293,6 +298,43 @@ const updateProfilePicture = asyncHandler(async (req, res) => {
   }
 });
 
+// get all users only for admin
+const getAllUserForAdmin = asyncHandler(async (req, res) => {
+  try {
+    getAllUsersServices(res);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: "Internal server error" });
+  }
+});
+
+// update user role for admin
+const updateUserRole = asyncHandler(async (req, res) => {
+  try {
+    const { id, role } = req.body;
+    updateUserRoleService(res, id, role);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: "Internal server error" });
+  }
+});
+
+// delete user only for admin
+
+const deleteUserRole = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  // Check if the user making the request is an admin
+  try {
+    const deletedUser = await UserModel.findByIdAndDelete(id);
+    if (!deletedUser) {
+      return res.status(404).send({ message: "User not found" });
+    }
+    return res.status(200).send({ message: "User removed successfully" });
+  } catch (error) {
+    handleErrorResponse(res, error);
+  }
+});
+
 module.exports = {
   RegisterUser,
   CreateActivationToken,
@@ -305,4 +347,7 @@ module.exports = {
   updateUserInfo,
   updateUserPassword,
   updateProfilePicture,
+  getAllUserForAdmin,
+  updateUserRole,
+  deleteUserRole,
 };

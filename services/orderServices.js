@@ -16,4 +16,13 @@ const newOrder = expressAsyncHandler(async (res, data, next) => {
   }
 });
 
-module.exports = { newOrder };
+// get order users
+const getAllOrdersServices = expressAsyncHandler(async (res) => {
+  try {
+    const orders = await OrderModel.find().sort({ createdAt: -1 });
+    return res.status(200).send({ message: "Success", orders });
+  } catch (error) {
+    handleErrorResponse(res, error);
+  }
+});
+module.exports = { newOrder, getAllOrdersServices };

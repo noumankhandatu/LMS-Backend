@@ -6,6 +6,8 @@ const { UserRouter } = require("./routes/userRoute");
 const { CourseRoute } = require("./routes/courseRoute");
 const { OrderRoute } = require("./routes/orderRoute");
 const { NotificationRoute } = require("./routes/notificationRoute");
+const { AnalyticRoute } = require("./routes/analyticRoute");
+const LayoutRoute = require("./routes/layoutRoute");
 // body parser
 app.use(express.json());
 // cookie parser for cookies
@@ -20,7 +22,15 @@ app.use(
 );
 
 // routes
-app.use("/api/v1", UserRouter, CourseRoute, OrderRoute, NotificationRoute);
+app.use(
+  "/api/v1",
+  UserRouter,
+  CourseRoute,
+  OrderRoute,
+  NotificationRoute,
+  AnalyticRoute,
+  LayoutRoute
+);
 
 app.get("/test", (req, res) => {
   return res.status(200).send({ messasge: "Great api working" });

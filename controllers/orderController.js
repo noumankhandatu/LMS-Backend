@@ -3,12 +3,14 @@ const { handleErrorResponse } = require("../middleware/errorHandler");
 const UserModel = require("../models/userModel");
 const CourseModel = require("../models/courseModel");
 const NotificationModel = require("../models/notificationModel");
-const { newOrder } = require("../services/orderServices");
+const { newOrder, getAllOrdersServices } = require("../services/orderServices");
 
 const sendMail = require("../utils/sendMail");
 
 const ejs = require("ejs");
 const path = require("path");
+const OrderModel = require("../models/orderModel");
+const { generateLast12MonthData } = require("../utils/analyticGenerator");
 // create order
 const createOrder = expressAsyncHandler(async (req, res, next) => {
   try {
@@ -82,11 +84,14 @@ const createOrder = expressAsyncHandler(async (req, res, next) => {
     handleErrorResponse(res, error);
   }
 });
+// get all courses only for admin
+const getAllOrderForAdmin = expressAsyncHandler(async (req, res) => {
+  try {
+    getAllOrdersServices(res);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: "Internal server error" });
+  }
+});
 
-module.exports = { createOrder };
-// const addAnswers = expressAsyncHandler(async (req, res) => {
-//   try {
-//   } catch (error) {
-//     handleErrorResponse(res, error);
-//   }
-// });
+module.exports = { createOrder, getAllOrderForAdmin };

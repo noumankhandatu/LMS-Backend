@@ -9,6 +9,8 @@ const {
   addAnswers,
   addReview,
   addReplyToReview,
+  getAllCoursesForAdmin,
+  deleteCourseByAdmin,
 } = require("../controllers/courseController");
 const { isAuthenticated, authorizationRole } = require("../middleware/auth");
 
@@ -27,6 +29,20 @@ CourseRoute.put(
   isAuthenticated,
   authorizationRole("admin"),
   addReplyToReview
+);
+// get all courses for admin
+CourseRoute.get(
+  "/get-all-courses-admin",
+  isAuthenticated,
+  authorizationRole("admin"),
+  getAllCoursesForAdmin
+);
+
+CourseRoute.delete(
+  "/delete-course-admin/:id",
+  isAuthenticated,
+  authorizationRole("admin"),
+  deleteCourseByAdmin
 );
 
 module.exports = { CourseRoute };

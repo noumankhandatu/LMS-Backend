@@ -35,55 +35,58 @@ const courseDataSchema = new Schema({
   questions: [questionSchema],
 });
 
-const courseSchema = new Schema({
-  name: {
-    type: String,
-    required: true,
-  },
-  description: {
-    type: String,
-    required: true,
-  },
-  price: {
-    type: Number,
-    required: true,
-  },
-  estimatePrice: {
-    type: Number,
-  },
-  thumbnail: {
-    public_id: {
+const courseSchema = new Schema(
+  {
+    name: {
       type: String,
+      required: true,
     },
-    url: {
+    description: {
       type: String,
+      required: true,
+    },
+    price: {
+      type: Number,
+      required: true,
+    },
+    estimatePrice: {
+      type: Number,
+    },
+    thumbnail: {
+      public_id: {
+        type: String,
+      },
+      url: {
+        type: String,
+      },
+    },
+    tags: {
+      type: String,
+      required: true,
+    },
+    levels: {
+      type: String,
+      required: true,
+    },
+    demoUrl: {
+      type: String,
+      required: true,
+    },
+    benefits: [{ title: String }],
+    prerequisites: [{ title: String }],
+    review: [reviewSchema],
+    courseData: [courseDataSchema],
+    rating: {
+      type: Number,
+      default: 0,
+    },
+    purchased: {
+      type: Number,
+      default: 0,
     },
   },
-  tags: {
-    type: String,
-    required: true,
-  },
-  levels: {
-    type: String,
-    required: true,
-  },
-  demoUrl: {
-    type: String,
-    required: true,
-  },
-  benefits: [{ title: String }],
-  prerequisites: [{ title: String }],
-  review: [reviewSchema],
-  courseData: [courseDataSchema],
-  rating: {
-    type: Number,
-    default: 0,
-  },
-  purchased: {
-    type: Number,
-    default: 0,
-  },
-});
+  { timestamps: true }
+);
 
 const CourseModel = model("CourseModel", courseSchema);
 module.exports = CourseModel;

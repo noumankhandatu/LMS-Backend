@@ -5,6 +5,8 @@ const { createCourse } = require("../services/courseServices");
 const CourseModel = require("../models/courseModel");
 const { default: mongoose } = require("mongoose");
 const NotificationModel = require("../models/notificationModel");
+const { getAllCoursesServices } = require("../services/courseServices");
+
 // upload course
 const uploadCourse = asyncHandler(async (req, res) => {
   try {
@@ -251,6 +253,32 @@ const addReplyToReview = asyncHandler(async (req, res) => {
   }
 });
 
+// get all courses only for admin
+const getAllCoursesForAdmin = asyncHandler(async (req, res) => {
+  try {
+    getAllCoursesServices(res);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: "Internal server error" });
+  }
+});
+
+const deleteCourseByAdmin = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deletedCourse = await CourseModel.findByIdAndDelete(id);
+
+    if (!deletedCourse) {
+      return res.status(404).send({ message: "Course not found" });
+    }
+
+    return res.status(200).send({ message: "Course removed successfully" });
+  } catch (error) {
+    handleErrorResponse(res, error);
+  }
+});
+
 module.exports = {
   uploadCourse,
   editCourse,
@@ -262,4 +290,6 @@ module.exports = {
   addAnswers,
   addReview,
   addReplyToReview,
+  getAllCoursesForAdmin,
+  deleteCourseByAdmin,
 };

@@ -10,6 +10,13 @@ const createCourse = expressAsyncHandler(async (data, res) => {
     handleErrorResponse(res, error);
   }
 });
-
-module.exports = { createCourse };
- 
+// get all courses
+const getAllCoursesServices = expressAsyncHandler(async (res) => {
+  try {
+    const courses = await CourseModel.find().sort({ createdAt: -1 });
+    return res.status(200).send({ message: "Success", courses });
+  } catch (error) {
+    handleErrorResponse(res, error);
+  }
+});
+module.exports = { createCourse, getAllCoursesServices };
